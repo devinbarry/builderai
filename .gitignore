@@ -140,3 +140,6 @@ cython_debug/
 .idea
 unit.xml
 env1/
+
+.crev-config.yaml
+crev-project.txt
