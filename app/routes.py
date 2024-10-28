@@ -27,6 +27,10 @@ def register_routes(app):
             if not isinstance(data['symbol'], str):
                 return jsonify({'error': 'symbol must be a string'}), 400
 
+            # Add validation for shares range
+            if not (10 <= data['shares'] <= 30):
+                return jsonify({'error': 'shares must be between 10 and 30 inclusive'}), 400
+
             new_trade = Trade(
                 type=data['type'],
                 user_id=data['user_id'],

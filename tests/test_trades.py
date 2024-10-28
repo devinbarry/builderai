@@ -8,7 +8,7 @@ def test_create_trade(client, app):
         type="buy",
         user_id=1,
         symbol="USD",
-        shares=30,
+        shares=30,  # Valid: exactly at upper bound
         price=90,
         timestamp=1531522701000
     )
@@ -16,6 +16,51 @@ def test_create_trade(client, app):
     response = client.post("/trades", json=trade_params)
     assert response.status_code == 201
     assert json_of_response(response) == dict(id=1, **trade_params)
+
+
+def test_create_trade_with_minimum_shares(client, app):
+    trade_params = dict(
+        type="buy",
+        user_id=1,
+        symbol="USD",
+        shares=10,  # Valid: exactly at lower bound
+        price=90,
+        timestamp=1531522701000
+    )
+
+    response = client.post("/trades", json=trade_params)
+    assert response.status_code == 201
+    assert json_of_response(response) == dict(id=1, **trade_params)
+
+
+def test_create_trade_with_invalid_shares_below_minimum(client, app):
+    trade_params = dict(
+        type="buy",
+        user_id=1,
+        symbol="USD",
+        shares=9,  # Invalid: below minimum
+        price=90,
+        timestamp=1531522701000
+    )
+
+    response = client.post("/trades", json=trade_params)
+    assert response.status_code == 400
+    assert json_of_response(response) == {'error': 'shares must be between 10 and 30 inclusive'}
+
+
+def test_create_trade_with_invalid_shares_above_maximum(client, app):
+    trade_params = dict(
+        type="buy",
+        user_id=1,
+        symbol="USD",
+        shares=31,  # Invalid: above maximum
+        price=90,
+        timestamp=1531522701000
+    )
+
+    response = client.post("/trades", json=trade_params)
+    assert response.status_code == 400
+    assert json_of_response(response) == {'error': 'shares must be between 10 and 30 inclusive'}
 
 
 def test_all_trades_returns_all_trades_json_ordered_by_id(client, app):
@@ -32,7 +77,7 @@ def test_all_trades_returns_all_trades_json_ordered_by_id(client, app):
             type="sell",
             user_id=2,
             symbol="EUR",
-            shares=40,
+            shares=20,
             price=95,
             timestamp=1531522701001
         )
@@ -95,7 +140,7 @@ def test_get_trade_returns_status_404_when_does_not_exist(client, app):
     if post_response.status_code != 201:
         fail('POST /trades is not implemented')
 
-    response = client.get(f"/trades/999")
+    response = client.get("/trades/999")
     assert response.status_code == 404
 
 
