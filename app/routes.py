@@ -1,4 +1,3 @@
-import time
 from flask import request, jsonify
 from .models import db, Trade
 
@@ -69,7 +68,7 @@ def register_routes(app):
 
     @app.route('/trades/<int:trade_id>', methods=['GET'])
     def get_trade(trade_id):
-        trade = Trade.query.get(trade_id)
+        trade = db.session.get(Trade, trade_id)
         if trade is None:
             return '', 404
 
